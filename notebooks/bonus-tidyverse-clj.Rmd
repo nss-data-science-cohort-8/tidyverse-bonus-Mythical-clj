@@ -2,9 +2,13 @@
 title: "Bonus Tidyverse CLJ"
 output: html_notebook
 ---
+
+
 1. Read in `districts.csv` into a tibble named `districts`.
 
 ```{r}
+library(tidyverse)
+
 districts <- read_csv('../data/districts.csv')
 ```
 
@@ -52,22 +56,32 @@ ggplot(districts, aes(x=alg_1, y=alg_2)) +
 
 8. When creating this bar chart you may have noticed that some districts have missing enrollment values. For how many districts is this the case?
 ```{r}
-
+  districts |> 
+  filter(is.na(enrollment)) |> 
+  nrow()
 ```
 
 9. A lot of rows are missing additional values. Which district has the largest number of missing values (across all variables)? Hint: you might want to look at rowwise and c_across to answer this question.
 ```{r}
-
+districts |> 
+  rowwise() |> 
+  mutate(na_count = sum(is.na(c_across(where(is.numeric))))) |> 
+  arrange(desc(na_count)) |> 
+  head(2)
 ```
 
 10. What is the mean graduation rate across all districts? What might be wrong with using just the regular mean to assess average graduation rates?
 ```{r}
-
+districts |> 
+  summarize(mean(grad, na.rm=TRUE))
 ```
 
 11. Redo the previous question but use a weighted average (`weighted.mean`) graduation across all districts, weighing by enrollment. How much does this change your answer? Can you explain using the data the reason for the big change from using the mean?
 ```{r}
-
+districts |> 
+ mutate(grad = ifelse(is.na(grad) | is.na(enrollment), NA, grad),
+        enrollment = ifelse(is.na(grad) | is.na(enrollment), NA, enrollment)) |> 
+  summarize(weighted.mean(grad, enrollment, na.rm=TRUE))
 ```
 
 12. Find the unweighted and weighted average graduation rate by district.
