@@ -48,6 +48,8 @@ districts |>
 ```
 
 7. Create a scatter plot to compare alg_1 proficiency rates to alg_2 rates. What do you notice? Facet this plot by region. Does anything stand out when you facet the plots?
+
+There seems to be a positive, linear relationship.
 ```{r}
 ggplot(districts, aes(x=alg_1, y=alg_2)) +
   geom_point() +
@@ -79,9 +81,8 @@ districts |>
 11. Redo the previous question but use a weighted average (`weighted.mean`) graduation across all districts, weighing by enrollment. How much does this change your answer? Can you explain using the data the reason for the big change from using the mean?
 ```{r}
 districts |> 
- mutate(grad = ifelse(is.na(grad) | is.na(enrollment), NA, grad),
-        enrollment = ifelse(is.na(grad) | is.na(enrollment), NA, enrollment)) |> 
-  summarize(weighted.mean(grad, enrollment, na.rm=TRUE))
+ drop_na(c(grad, enrollment)) |> 
+  summarize(weighted.mean(grad, enrollment))
 ```
 
 12. Find the unweighted and weighted average graduation rate by district.
@@ -94,11 +95,18 @@ districts |>
 
 13. Read in the school-level testing data for 2014, available [here](https://www.tn.gov/content/dam/tn/education/data/data_2014_state_base.xlsx). You might find the readxl library useful for this task. If you use this library, be sure to look at the `na`argument for the `read_excel` function.
 ```{r}
+library(readxl)
 
+school_test_df <- read_excel('../data/data_2014_state_base.xlsx', na='')
+
+print(school_test_df)
 ```
 
 To answer the following questions, use "All Students" for the subgroup. 
-
+```{r}
+all_students <- school_test_df |> 
+  filter(subgroup == 'All Students')
+```
 
 14. How many schools have at least 20 percent of students below bsc for Algebra I? Which districts do these schools belong to?
 ```{r}
@@ -107,7 +115,8 @@ To answer the following questions, use "All Students" for the subgroup.
 
 15. How many schools have at least 20 percent of students below bsc for _both_ Algebra I and English I?
 ```{r}
-
+all_students |> 
+  select()
 ```
 
 16. Which grade has the highest pct_adv for Algebra I? Plot the average pct_adv per grade level as a bar chart. Make sure that the bars are ordered by grade level.
