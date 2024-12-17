@@ -110,13 +110,14 @@ all_students <- school_test_df |>
 
 14. How many schools have at least 20 percent of students below bsc for Algebra I? Which districts do these schools belong to?
 ```{r}
-
+all_students |> 
+  filter(subject == 'Algebra I' & pct_below_bsc >= 20)
 ```
 
 15. How many schools have at least 20 percent of students below bsc for _both_ Algebra I and English I?
 ```{r}
 all_students |> 
-  select()
+  filter(subject == c('Algebra I', 'English I') & pct_below_bsc >= 20)
 ```
 
 16. Which grade has the highest pct_adv for Algebra I? Plot the average pct_adv per grade level as a bar chart. Make sure that the bars are ordered by grade level.
