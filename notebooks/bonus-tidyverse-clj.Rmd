@@ -19,6 +19,8 @@ districts <- districts |>
 ```
 
 3. How many districts have a proficiency rate of at least 80% for both alg_1 and eng_1?
+
+13
 ```{r}
 districts |> 
   filter(alg_1 >= 80 & eng_1 >= 80) |> 
@@ -26,6 +28,8 @@ districts |>
 ```
 
 4. How many districts have a proficiency rate less than 50% for either alg_1 or eng_1?
+
+8
 ```{r}
 districts |> 
   filter(alg_1 < 50 | eng_1 < 50) |> 
@@ -33,6 +37,8 @@ districts |>
 ```
 
 5. Which district has the lowest graduation rate?
+
+Tenn School for Blind
 ```{r}
 districts |> 
   arrange(grad) |> 
@@ -40,6 +46,8 @@ districts |>
 ```
 
 6. Within the Mid Cumberland region, which district has the highest ACT composite?
+
+Williamson County (figures!)
 ```{r}
 districts |> 
   filter(region == 'Mid Cumberland') |> 
@@ -57,6 +65,8 @@ ggplot(districts, aes(x=alg_1, y=alg_2)) +
 ```
 
 8. When creating this bar chart you may have noticed that some districts have missing enrollment values. For how many districts is this the case?
+
+4 districts
 ```{r}
   districts |> 
   filter(is.na(enrollment)) |> 
@@ -64,6 +74,8 @@ ggplot(districts, aes(x=alg_1, y=alg_2)) +
 ```
 
 9. A lot of rows are missing additional values. Which district has the largest number of missing values (across all variables)? Hint: you might want to look at rowwise and c_across to answer this question.
+
+West Tenn School for Deaf
 ```{r}
 districts |> 
   rowwise() |> 
@@ -73,21 +85,28 @@ districts |>
 ```
 
 10. What is the mean graduation rate across all districts? What might be wrong with using just the regular mean to assess average graduation rates?
+
+Using just the regular mean doesn't account for other variables that can cause that number to be skewed in favor of schools with less students where the grad rate can be higher simply because of less students failing out.
 ```{r}
 districts |> 
   summarize(mean(grad, na.rm=TRUE))
 ```
 
 11. Redo the previous question but use a weighted average (`weighted.mean`) graduation across all districts, weighing by enrollment. How much does this change your answer? Can you explain using the data the reason for the big change from using the mean?
+
+This changes the mean by 3. The data has a variation of enrollment sizes that, when accounted for, allows for the mean to be weighted and balances out the graduation rate.
 ```{r}
 districts |> 
  drop_na(c(grad, enrollment)) |> 
   summarize(weighted.mean(grad, enrollment))
 ```
 
-12. Find the unweighted and weighted average graduation rate by district.
+12. Find the unweighted and weighted average graduation rate by region.
 ```{r}
-
+districts |> 
+  drop_na(grad, enrollment) |> 
+  group_by(region) |> 
+  summarize(mean = mean(grad), `weighted mean` = weighted.mean(grad, enrollment))
 ```
 
 **Continued Exploration and Practice**
@@ -97,7 +116,7 @@ districts |>
 ```{r}
 library(readxl)
 
-school_test_df <- read_excel('../data/data_2014_state_base.xlsx', na='')
+school_test_df <- read_excel('../data/data_2014_school_base.xlsx', na='')
 
 print(school_test_df)
 ```
@@ -111,23 +130,45 @@ all_students <- school_test_df |>
 14. How many schools have at least 20 percent of students below bsc for Algebra I? Which districts do these schools belong to?
 ```{r}
 all_students |> 
-  filter(subject == 'Algebra I' & pct_below_bsc >= 20)
+  group_by(school_name) |> 
+  drop_na(pct_below_bsc) |> 
+  mutate(pct_below_bsc = as.numeric(pct_below_bsc)) |> 
+  filter(subject == 'Algebra I' & pct_below_bsc >= 20) |> 
+  count(system_name)
 ```
 
 15. How many schools have at least 20 percent of students below bsc for _both_ Algebra I and English I?
 ```{r}
 all_students |> 
+  group_by(school_name) |> 
+  drop_na(pct_below_bsc) |> 
+  mutate(pct_below_bsc = as.numeric(pct_below_bsc)) |>  
   filter(subject == c('Algebra I', 'English I') & pct_below_bsc >= 20)
 ```
 
 16. Which grade has the highest pct_adv for Algebra I? Plot the average pct_adv per grade level as a bar chart. Make sure that the bars are ordered by grade level.
 ```{r}
+grades <- all_students |> 
+  group_by(grade) |> 
+  filter(subject == 'Algebra I') |> 
+  arrange(desc(pct_adv))
 
+ggplot(data=grades, aes(x=grade, y=pct_adv)) +
+  geom_col()
 ```
 
 17. Find the correlation between pct_adv for Algebra I and pct_adv for Algebra II by school. Create a scatterplot showing Algebra II scores vs. Algebra I scores by school.
 ```{r}
+alg_I <- all_students |> 
+  filter(subject == 'Algebra I') |> 
+  mutate(pct_adv = as.numeric(pct_adv))
 
+alg_II <- all_students |> 
+  filter(subject == 'Algebra II') |> 
+  mutate(pct_adv = as.numeric(pct_adv)) 
+
+alg_I$pct_adv |> 
+  cor(alg_II$pct_adv)
 ```
 
 18. Find all schools in Rutherford County that have "High School" in their name. For these schools, create a chart (your choice) showing the differences in pct_below_bsc, pct_bsc, pct_prof, and pct_adv for Algebra I when looking across all subgroups and grades.
