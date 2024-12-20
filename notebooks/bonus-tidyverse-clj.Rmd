@@ -210,6 +210,7 @@ ggplot(dfm, aes(x=school_name, y=value, fill=name)) +
                                "#86525B",
                                "#5C5740",
                                "#40485C")) +
+  theme(panel.background = element_blank()) +
   labs(x = "Schools", y = "Percent", title = "The percent values of each high school in Rutherford County")
 ```
 
