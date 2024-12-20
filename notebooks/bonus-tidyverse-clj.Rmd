@@ -180,14 +180,37 @@ alg_III |>
 
 ```{r}
 ggplot(alg_III, aes(x=`Algebra I`, y=`Algebra II`)) +
-  geom_point()
+  geom_point() +
+  geom_smooth(method = 'lm', color='#86525B')
 ```
 
 18. Find all schools in Rutherford County that have "High School" in their name. For these schools, create a chart (your choice) showing the differences in pct_below_bsc, pct_bsc, pct_prof, and pct_adv for Algebra I when looking across all subgroups and grades.
 ```{r}
 all_schools <-  all_students |> 
-  filter(system_name == 'Rutherford County' & grepl('High School', school_name) & subject == 'Algebra I')
+  filter(system_name == 'Rutherford County' & grepl('High School', school_name) & subject == 'Algebra I' & grade == 'All Grades') |> 
+  group_by(school_name, grade) |> 
+  select(school_name, grade, pct_below_bsc, pct_bsc, pct_prof, pct_adv)
 
+dfm <- all_schools |> 
+  pivot_longer(c(pct_below_bsc, pct_bsc, pct_prof, pct_adv))
+
+labels_school <- c('Blackman', 
+                   'Holloway', 
+                   'LaVergne', 
+                   'Oakland', 
+                   'Riverdale', 
+                   'Smyrna', 
+                   'Siegel', 
+                   'Stewart\'s Creek' )
+
+ggplot(dfm, aes(x=school_name, y=value, fill=name)) +
+  geom_col(position = "dodge", stat = "identity") +
+  scale_x_discrete(labels=labels_school, colors()) +
+  scale_fill_manual(values = c("#6C2CDB",
+                               "#86525B",
+                               "#5C5740",
+                               "#40485C")) +
+  labs(x = "Schools", y = "Percent", title = "The percent values of each high school in Rutherford County")
 ```
 
 19. Create a function which allows you to select a system_name and which creates a plot to show the differences in pct_below_bsc, pct_bsc, pct_prof, and pct_adv for Algebra I when looking across all subgroups and grades for all schools with "High School" in their names within that system.
