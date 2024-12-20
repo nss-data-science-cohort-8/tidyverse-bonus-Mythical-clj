@@ -124,55 +124,69 @@ print(school_test_df)
 To answer the following questions, use "All Students" for the subgroup. 
 ```{r}
 all_students <- school_test_df |> 
-  filter(subgroup == 'All Students')
+  filter(subgroup == 'All Students') |> 
+  mutate_at(vars(n_below_bsc:pct_prof_adv), as.numeric)
 ```
 
 14. How many schools have at least 20 percent of students below bsc for Algebra I? Which districts do these schools belong to?
 ```{r}
-all_students |> 
-  group_by(school_name) |> 
-  drop_na(pct_below_bsc) |> 
-  mutate(pct_below_bsc = as.numeric(pct_below_bsc)) |> 
-  filter(subject == 'Algebra I' & pct_below_bsc >= 20) |> 
-  count(system_name)
+alg_sub_20 <- all_students |> 
+  filter(subject == 'Algebra I' & pct_below_bsc >= 20)
+
+alg_sub_20 |> 
+  count()
+
+alg_sub_20 |> 
+  distinct(system_name)
 ```
 
 15. How many schools have at least 20 percent of students below bsc for _both_ Algebra I and English I?
 ```{r}
 all_students |> 
-  group_by(school_name) |> 
-  drop_na(pct_below_bsc) |> 
-  mutate(pct_below_bsc = as.numeric(pct_below_bsc)) |>  
-  filter(subject == c('Algebra I', 'English I') & pct_below_bsc >= 20)
+  filter(subject == c('Algebra I', 'English I') & pct_below_bsc >= 20) |>
+  distinct(school_name) |>
+  count()
 ```
 
 16. Which grade has the highest pct_adv for Algebra I? Plot the average pct_adv per grade level as a bar chart. Make sure that the bars are ordered by grade level.
 ```{r}
 grades <- all_students |> 
   group_by(grade) |> 
-  filter(subject == 'Algebra I') |> 
-  arrange(desc(pct_adv))
+  filter(subject == 'Algebra I' & grade != 'Missing Grade' & grade != 'All Grades') |> 
+  mutate(grade = as.numeric(grade)) 
+  
 
-ggplot(data=grades, aes(x=grade, y=pct_adv)) +
+grades |> 
+  group_by(grade) |> 
+  summarize(pct_adv = mean(pct_adv, na.rm=TRUE)) |>
+  ggplot(aes(x=grade, y=pct_adv)) +
   geom_col()
 ```
 
 17. Find the correlation between pct_adv for Algebra I and pct_adv for Algebra II by school. Create a scatterplot showing Algebra II scores vs. Algebra I scores by school.
 ```{r}
-alg_I <- all_students |> 
-  filter(subject == 'Algebra I') |> 
-  mutate(pct_adv = as.numeric(pct_adv))
+alg_III <- all_students |> 
+  drop_na(pct_adv) |>
+  filter((subject == 'Algebra I' | subject == 'Algebra II') & grade == 'All Grades') |>
+  select(c(system_name, school_name, subject, pct_adv)) |> 
+  pivot_wider(names_from = subject, values_from = pct_adv)
+```
 
-alg_II <- all_students |> 
-  filter(subject == 'Algebra II') |> 
-  mutate(pct_adv = as.numeric(pct_adv)) 
+```{r}
+alg_III |> 
+  select(`Algebra I`, `Algebra II`) |> 
+  cor(use = "pairwise.complete.obs")
+```
 
-alg_I$pct_adv |> 
-  cor(alg_II$pct_adv)
+```{r}
+ggplot(alg_III, aes(x=`Algebra I`, y=`Algebra II`)) +
+  geom_point()
 ```
 
 18. Find all schools in Rutherford County that have "High School" in their name. For these schools, create a chart (your choice) showing the differences in pct_below_bsc, pct_bsc, pct_prof, and pct_adv for Algebra I when looking across all subgroups and grades.
 ```{r}
+all_schools <-  all_students |> 
+  filter(system_name == 'Rutherford County' & grepl('High School', school_name) & subject == 'Algebra I')
 
 ```
 
