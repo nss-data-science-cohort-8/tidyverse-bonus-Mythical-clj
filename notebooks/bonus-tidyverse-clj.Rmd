@@ -8,6 +8,7 @@ output: html_notebook
 
 ```{r}
 library(tidyverse)
+library(glue)
 
 districts <- read_csv('../data/districts.csv')
 ```
@@ -131,7 +132,8 @@ all_students <- school_test_df |>
 14. How many schools have at least 20 percent of students below bsc for Algebra I? Which districts do these schools belong to?
 ```{r}
 alg_sub_20 <- all_students |> 
-  filter(subject == 'Algebra I' & pct_below_bsc >= 20)
+  filter(subject == 'Algebra I' 
+         & pct_below_bsc >= 20)
 
 alg_sub_20 |> 
   count()
@@ -143,7 +145,8 @@ alg_sub_20 |>
 15. How many schools have at least 20 percent of students below bsc for _both_ Algebra I and English I?
 ```{r}
 all_students |> 
-  filter(subject == c('Algebra I', 'English I') & pct_below_bsc >= 20) |>
+  filter(subject == c('Algebra I', 'English I') 
+         & pct_below_bsc >= 20) |>
   distinct(school_name) |>
   count()
 ```
@@ -152,7 +155,9 @@ all_students |>
 ```{r}
 grades <- all_students |> 
   group_by(grade) |> 
-  filter(subject == 'Algebra I' & grade != 'Missing Grade' & grade != 'All Grades') |> 
+  filter(subject == 'Algebra I' 
+         & grade != 'Missing Grade'
+         & grade != 'All Grades') |> 
   mutate(grade = as.numeric(grade)) 
   
 
@@ -187,12 +192,23 @@ ggplot(alg_III, aes(x=`Algebra I`, y=`Algebra II`)) +
 18. Find all schools in Rutherford County that have "High School" in their name. For these schools, create a chart (your choice) showing the differences in pct_below_bsc, pct_bsc, pct_prof, and pct_adv for Algebra I when looking across all subgroups and grades.
 ```{r}
 all_schools <-  all_students |> 
-  filter(system_name == 'Rutherford County' & grepl('High School', school_name) & subject == 'Algebra I' & grade == 'All Grades') |> 
+  filter(system_name == 'Rutherford County' 
+         & grepl('High School', school_name) 
+         & subject == 'Algebra I' 
+         & grade == 'All Grades') |> 
   group_by(school_name, grade) |> 
-  select(school_name, grade, pct_below_bsc, pct_bsc, pct_prof, pct_adv)
+  select(school_name, 
+         grade, 
+         pct_below_bsc, 
+         pct_bsc, 
+         pct_prof, 
+         pct_adv)
 
 dfm <- all_schools |> 
-  pivot_longer(c(pct_below_bsc, pct_bsc, pct_prof, pct_adv))
+  pivot_longer(c(pct_below_bsc, 
+                 pct_bsc, 
+                 pct_prof, 
+                 pct_adv))
 
 labels_school <- c('Blackman', 
                    'Holloway', 
@@ -216,6 +232,41 @@ ggplot(dfm, aes(x=school_name, y=value, fill=name)) +
 
 19. Create a function which allows you to select a system_name and which creates a plot to show the differences in pct_below_bsc, pct_bsc, pct_prof, and pct_adv for Algebra I when looking across all subgroups and grades for all schools with "High School" in their names within that system.
 ```{r}
-
+county_func <- function(df, county){
+  df <- df |> 
+  filter(system_name == county, 
+         grepl('High School', school_name)
+         & subject == 'Algebra I'
+         & grade == 'All Grades') |>
+  group_by(system_name, grade) |> 
+  select(system_name, 
+         school_name, 
+         grade, 
+         pct_below_bsc, 
+         pct_bsc, 
+         pct_prof, 
+         pct_adv) 
+    df$school_name <- substr(df$school_name, 1, nchar(df$school_name)-11)
+  
+  dff <- df |> 
+  pivot_longer(c(pct_below_bsc,
+                 pct_bsc, 
+                 pct_prof, 
+                 pct_adv))
+  
+  ggplot(dff, aes(x=school_name, y=value, fill=name)) +
+  geom_col(position = "dodge", stat = "identity") +
+    scale_fill_manual(values = c("#6C2CDB",
+                               "#86525B",
+                               "#5C5740",
+                               "#40485C")) +
+    theme(panel.background = element_blank()) +
+  labs(x = "Schools", 
+       y = "Percent", 
+       title = glue("The percent values of each high school in {county}"))
+  }
+```
+```{r}
+county_func(df = all_students, county="Rutherford County")
 ```
 
