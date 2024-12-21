@@ -63,6 +63,7 @@ There seems to be a positive, linear relationship.
 ggplot(districts, aes(x=alg_1, y=alg_2)) +
   geom_point() +
   facet_wrap(~region)
+ggsave(file="../images/regionFacet_wrap.png", width=6, height=4)
 ```
 
 8. When creating this bar chart you may have noticed that some districts have missing enrollment values. For how many districts is this the case?
@@ -166,6 +167,7 @@ grades |>
   summarize(pct_adv = mean(pct_adv, na.rm=TRUE)) |>
   ggplot(aes(x=grade, y=pct_adv)) +
   geom_col()
+ggsave(file="../images/pct_advByGrade.png", width=6, height=4)
 ```
 
 17. Find the correlation between pct_adv for Algebra I and pct_adv for Algebra II by school. Create a scatterplot showing Algebra II scores vs. Algebra I scores by school.
@@ -187,6 +189,7 @@ alg_III |>
 ggplot(alg_III, aes(x=`Algebra I`, y=`Algebra II`)) +
   geom_point() +
   geom_smooth(method = 'lm', color='#86525B')
+ggsave(file="../images/ag1ByAlg2.png", width=6, height=4)
 ```
 
 18. Find all schools in Rutherford County that have "High School" in their name. For these schools, create a chart (your choice) showing the differences in pct_below_bsc, pct_bsc, pct_prof, and pct_adv for Algebra I when looking across all subgroups and grades.
@@ -219,7 +222,7 @@ labels_school <- c('Blackman',
                    'Siegel', 
                    'Stewart\'s Creek' )
 
-ggplot(dfm, aes(x=school_name, y=value, fill=name)) +
+rutherford_plot <- ggplot(dfm, aes(x=school_name, y=value, fill=name)) +
   geom_col(position = "dodge", stat = "identity") +
   scale_x_discrete(labels=labels_school, colors()) +
   scale_fill_manual(values = c("#6C2CDB",
@@ -228,6 +231,8 @@ ggplot(dfm, aes(x=school_name, y=value, fill=name)) +
                                "#40485C")) +
   theme(panel.background = element_blank()) +
   labs(x = "Schools", y = "Percent", title = "The percent values of each high school in Rutherford County")
+
+ggsave("../images/Rutherford_Bar.png", rutherford_plot)
 ```
 
 19. Create a function which allows you to select a system_name and which creates a plot to show the differences in pct_below_bsc, pct_bsc, pct_prof, and pct_adv for Algebra I when looking across all subgroups and grades for all schools with "High School" in their names within that system.
@@ -243,10 +248,7 @@ county_func <- function(df, county){
          school_name,
          subgroup,
          grade, 
-         pct_below_bsc, 
-         pct_bsc, 
-         pct_prof, 
-         pct_adv) 
+         pct_below_bsc:pct_adv) 
     df$school_name <- substr(df$school_name, 1, nchar(df$school_name)-11)
   
   dff <- df |> 
@@ -268,9 +270,10 @@ county_func <- function(df, county){
   labs(x = "Schools", 
        y = "Percent", 
        title = glue("The percent values of each high school in {county}"))
+  ggsave(file=glue("../images/{county} Bar.png"), width=6, height=4)
   }
 ```
 ```{r}
-county_func(df = all_students, county="Davidson County")
+county_func(df = all_students, county="Williamson County")
 ```
 
