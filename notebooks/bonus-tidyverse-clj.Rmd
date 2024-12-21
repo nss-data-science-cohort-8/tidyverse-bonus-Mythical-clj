@@ -62,7 +62,10 @@ There seems to be a positive, linear relationship.
 ```{r}
 ggplot(districts, aes(x=alg_1, y=alg_2)) +
   geom_point() +
-  facet_wrap(~region)
+  facet_wrap(~region) +
+  labs(x = "Algebra I",
+       y = "Algebra II",
+       title = "Algebra I by Algebra II Scores Across Regions")
 ggsave(file="../images/regionFacet_wrap.png", width=6, height=4)
 ```
 
@@ -166,7 +169,10 @@ grades |>
   group_by(grade) |> 
   summarize(pct_adv = mean(pct_adv, na.rm=TRUE)) |>
   ggplot(aes(x=grade, y=pct_adv)) +
-  geom_col()
+  geom_col() +
+  labs(x = "pct_adv",
+       y = "Grade level",
+       title = "pct adv of each grade in Algebra I")
 ggsave(file="../images/pct_advByGrade.png", width=6, height=4)
 ```
 
@@ -188,7 +194,10 @@ alg_III |>
 ```{r}
 ggplot(alg_III, aes(x=`Algebra I`, y=`Algebra II`)) +
   geom_point() +
-  geom_smooth(method = 'lm', color='#86525B')
+  geom_smooth(method = 'lm', color='#86525B') +
+  labs(x = "Algebra I", 
+       y = "Algebra II", 
+       title = "Algebra I by Algebra II scores")
 ggsave(file="../images/ag1ByAlg2.png", width=6, height=4)
 ```
 
@@ -257,7 +266,7 @@ county_func <- function(df, county){
                  pct_prof, 
                  pct_adv))
   
-  ggplot(dff, aes(x=school_name, y=value, fill=name)) +
+  plots <- ggplot(dff, aes(x=school_name, y=value, fill=name)) +
   geom_col(position = "dodge", stat = "identity") +
     scale_fill_manual(values = c("#6C2CDB",
                                "#86525B",
@@ -270,10 +279,11 @@ county_func <- function(df, county){
   labs(x = "Schools", 
        y = "Percent", 
        title = glue("The percent values of each high school in {county}"))
-  ggsave(file=glue("../images/{county} Bar.png"), width=6, height=4)
+  ggsave(file=glue("../images/{county} Bar.png"), width=6, height=4, plots)
+  print(plots)
   }
 ```
 ```{r}
-county_func(df = all_students, county="Williamson County")
+county_func(df = all_students, county="Morgan County")
 ```
 
