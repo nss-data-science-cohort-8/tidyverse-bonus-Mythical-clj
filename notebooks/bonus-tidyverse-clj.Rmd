@@ -240,7 +240,8 @@ county_func <- function(df, county){
          & grade == 'All Grades') |>
   group_by(system_name, grade) |> 
   select(system_name, 
-         school_name, 
+         school_name,
+         subgroup,
          grade, 
          pct_below_bsc, 
          pct_bsc, 
@@ -260,13 +261,16 @@ county_func <- function(df, county){
                                "#86525B",
                                "#5C5740",
                                "#40485C")) +
-    theme(panel.background = element_blank()) +
+    facet_wrap(~subgroup,
+               scales = "free_y", nrow = 3) +
+    theme(panel.background = element_blank(),
+          axis.text.x = element_text(angle = 45, hjust = 1)) +
   labs(x = "Schools", 
        y = "Percent", 
        title = glue("The percent values of each high school in {county}"))
   }
 ```
 ```{r}
-county_func(df = all_students, county="Rutherford County")
+county_func(df = all_students, county="Davidson County")
 ```
 
